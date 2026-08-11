@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: lead_rescue
+      POSTGRES_USER: leadrescue
+      POSTGRES_PASSWORD: change-me
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://leadrescue:change-me@db:5432/lead_rescue
+    depends_on:
+      - db
+volumes:
+  pgdata:
