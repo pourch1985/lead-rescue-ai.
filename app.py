@@ -834,6 +834,20 @@ def integrations():
                 (bid,'meta',page_id,page_name or f'Meta Page {page_id}',enc,now,now)
             )
             conn.commit(); flash('Meta Page connection saved.','success')
+        elif provider == 'amazon':
+            account_id = request.form.get('account_id','').strip()
+            if not account_id:
+                conn.close(); flash('Amazon account ID is required.','error'); return redirect(url_for('integrations'))
+            display_name = request.form.get('display_name','Amazon Leads').strip() or 'Amazon Leads'
+            enc = encrypt_json({'status': 'pending_api_connection'})
+            now = now_iso()
+            conn.execute(
+                '''INSERT INTO integrations(business_id,provider,account_id,display_name,credentials_enc,enabled,created_at,updated_at)
+                VALUES (?,?,?,?,?,1,?,?)
+                ON CONFLICT(business_id,provider,account_id) DO UPDATE SET display_name=excluded.display_name,credentials_enc=excluded.credentials_enc,enabled=1,updated_at=excluded.updated_at''',
+                (bid,'amazon',account_id,display_name,enc,now,now)
+            )
+            conn.commit(); flash('Amazon lead source saved.','success')
         conn.close(); return redirect(url_for('integrations'))
     rows = conn.execute('SELECT id,provider,account_id,display_name,enabled,created_at,updated_at FROM integrations WHERE business_id=? ORDER BY id DESC',(bid,)).fetchall()
     conn.close()
